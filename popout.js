@@ -1,36 +1,36 @@
 class PopoutModule {
 	static onRenderJournalSheet(obj, html, data) {
-		let element = html.find(".window-header .window-title")
+		let element = html.find(".window-header .window-title")[0];
 		PopoutModule.addPopout(element, `game.journal.get("${obj.entity.id}").sheet`);
 	}
 	static onRenderActorSheet(obj, html, data) {
-		let element = html.find(".window-header .window-title")
+		let element = html.find(".window-header .window-title")[0];
 		PopoutModule.addPopout(element, `game.actors.get("${obj.entity.id}").sheet`);
 	}
 	static addPopout(element, sheet) {
 		// Can't find it?
-		if (element.length != 1) {
+		if (element.length !== 1) {
 			return;
 		}
-		let popout = $('<a class="popout" style><i class="fas fa-external-link-alt"></i>PopOut!</a>')
-		popout.on('click', (event) => PopoutModule.onPopoutClicked(event, sheet))
-		element.after(popout)
+		let popout = $('<a class="popout" style><i class="fas fa-external-link-alt"></i>PopOut!</a>');
+		popout.on('click', (event) => PopoutModule.onPopoutClicked(event, sheet));
+		element.after(popout);
 
 	}
 	static onPopoutClicked(event, sheet) {
-		let div = $(event.target).closest("div")
-		let window_title = div.find(".window-title").text().trim()
+		let div = $(event.target).closest("div");
+		let window_title = div.find(".window-title").text().trim();
 
 		// Create a new html document
-		let html = $("<html>")
-		let head = $("<head>")
-		let body = $("<body>")
+		let html = $("<html>");
+		let head = $("<head>");
+		let body = $("<body>");
 
 		// Copy classes from html/head/body tags and add title
-		html.attr("class", $("html").attr("class"))
-		head.attr("class", $("head").attr("class"))
-		head.append($("<title>" + window_title + "</title>"))
-		body.attr("class", $("body").attr("class"))
+		html.attr("class", $("html").attr("class"));
+		head.attr("class", $("head").attr("class"));
+		head.append($("<title>" + window_title + "</title>"));
+		body.attr("class", $("body").attr("class"));
 		/*
 		// Clone the journal sheet so we can modify it safely
 		div = div.clone()
@@ -48,25 +48,25 @@ class PopoutModule {
 			"padding": "15px",
 		})
 		body.append(div)*/
-		html.append(head)
-		html.append(body)
+		html.append(head);
+		html.append(body);
 
 		// Copy the scripts and css so the sheet appears correctly
 		for (let link of $("head link")) {
-			let new_link = $(link).clone()
+			let new_link = $(link).clone();
 			// Replace the href with the full URL
 			if (new_link.href != "")
-				new_link.attr("href", link.href)
-			head.append(new_link)
+				new_link.attr("href", link.href);
+			head.append(new_link);
 		}
 		for (let script of $("head script,body script")) {
-			let new_script = $(script).clone()
+			let new_script = $(script).clone();
 			// Replace the src with the full URL
 			if (script.src != "")
-				new_script.attr("src", script.src)
-			head.append(new_script)
+				new_script.attr("src", script.src);
+			head.append(new_script);
 		}
-		head.append($("<script>canvas = {};</script>"))
+		head.append($("<script>canvas = {};</script>"));
 		// Avoid having the UI initialized which renders the chatlog and all sorts
 		// of other things behind the sheet
 		body.append($(`<script>
@@ -93,24 +93,24 @@ class PopoutModule {
 		      }
 			  Hooks.on('ready', () => PopoutModule.renderPopout(${sheet}));
 		      window.dispatchEvent(new Event('load'))
-		      </script>`))
+		      </script>`));
 		// Open new window and write the new html document into it
 		// We need to open it to the same url because some images use relative paths
-		let win = window.open(window.location.toString())
+		let win = window.open(window.location.toString());
 		//console.log(win)
 		// This is for electron which doesn't have a Window but a BrowserWindowProxy
 		if (win.document === undefined) {
-			win.eval(`document.write(\`${html[0].outerHTML}\`); document.close();`)
+			win.eval(`document.write(\`${html[0].outerHTML}\`); document.close();`);
 		} else {
-			win.document.write(html[0].outerHTML)
+			win.document.write(html[0].outerHTML);
 			// After doing a write, we need to do a document.close() so it finishes
 			// loading and emits the load event.
-			win.document.close()
+			win.document.close();
 		}
 	}
 
 	static renderPopout(sheet) {
-		sheet._original_popout_render = sheet._render
+		sheet._original_popout_render = sheet._render;
 		sheet.options.minimizable = false;
 		sheet.options.resizable = false;
 		sheet.options.id = "popout-" + sheet.id;
@@ -125,22 +125,22 @@ class PopoutModule {
 				await new Promise((resolve) => setTimeout(() => resolve(), 0));
 			}
 			// Maximum it
-			sheet.element.css({ width: "100%", height: "100%", top: "0px", left: "0px" })
+			sheet.element.css({ width: "100%", height: "100%", top: "0px", left: "0px" });
 			// Remove the close and popout buttons
-			sheet.element.find("header .close, header .popout").remove()
+			sheet.element.find("header .close, header .popout").remove();
 		}
 		sheet.render(true);
 	}
 }
 
 Hooks.on('ready', () => {
-	Hooks.on('renderJournalSheet', PopoutModule.onRenderJournalSheet)
+	Hooks.on('renderJournalSheet', PopoutModule.onRenderJournalSheet);
 	// Hook to render on any actor sheets
-	let sheets = []
+	let sheets = [];
 	for (let type in CONFIG["Actor"].sheetClasses) {
-		sheets = sheets.concat(Object.values(CONFIG["Actor"].sheetClasses[type]))
+		sheets = sheets.concat(Object.values(CONFIG["Actor"].sheetClasses[type]));
 	}
 	for (let sheet of sheets.map(s => s.cls.name)) {
-		Hooks.on('render' + sheet, PopoutModule.onRenderActorSheet)
+		Hooks.on('render' + sheet, PopoutModule.onRenderActorSheet);
 	}
 });
