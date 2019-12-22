@@ -2,7 +2,7 @@
     "name": "popout",
     "title": "PopOut!",
     "description": "Pop out Journal entries into their own windows for easier viewing.",
-    "version": "0.31",
+    "version": "0.32",
     "author": "KaKaRoTo",
     "scripts": ["./popout.js"],
     "styles": [],

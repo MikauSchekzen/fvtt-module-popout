@@ -1,10 +1,10 @@
 class PopoutModule {
 	static onRenderJournalSheet(obj, html, data) {
-		let element = html.find(".window-header .window-title")[0];
+		let element = html.find(".window-header .window-title");
 		PopoutModule.addPopout(element, `game.journal.get("${obj.entity.id}").sheet`);
 	}
 	static onRenderActorSheet(obj, html, data) {
-		let element = html.find(".window-header .window-title")[0];
+		let element = html.find(".window-header .window-title");
 		PopoutModule.addPopout(element, `game.actors.get("${obj.entity.id}").sheet`);
 	}
 	static addPopout(element, sheet) {
@@ -55,14 +55,14 @@ class PopoutModule {
 		for (let link of $("head link")) {
 			let new_link = $(link).clone();
 			// Replace the href with the full URL
-			if (new_link.href != "")
+			if (new_link.href !== "")
 				new_link.attr("href", link.href);
 			head.append(new_link);
 		}
 		for (let script of $("head script,body script")) {
 			let new_script = $(script).clone();
 			// Replace the src with the full URL
-			if (script.src != "")
+			if (script.src !== "")
 				new_script.attr("src", script.src);
 			head.append(new_script);
 		}
@@ -71,33 +71,38 @@ class PopoutModule {
 		// of other things behind the sheet
 		body.append($(`<script>
 		      Game.prototype.initializeUI = function() {
-				ui.nav = new SceneNavigation()
+				ui.nav = new SceneNavigation();
 				ui.controls = new SceneControls();
 				ui.notifications = new Notifications().render();
-				ui.sidebar = new Sidebar()
+				ui.sidebar = new Sidebar();
 				// sidebar elements only get created on the render
 				// but we don't want to render them
-				ui.chat = new ChatLog()
-				ui.combat = new CombatTracker()
-				ui.scenes = new SceneDirectory()
-				ui.actors = new ActorDirectory()
-				ui.items = new ItemDirectory()
-				ui.journal = new JournalDirectory()
-				ui.tables = new RollTableDirectory()
-				ui.playlists = new PlaylistDirectory()
-				ui.compendium = new CompendiumDirectory()
-				ui.settings = new Settings()
-				ui.players = new PlayerList()
-				ui.pause = new Pause()
+				ui.chat = new ChatLog();
+				ui.combat = new CombatTracker();
+				ui.scenes = new SceneDirectory();
+				ui.actors = new ActorDirectory();
+				ui.items = new ItemDirectory();
+				ui.journal = new JournalDirectory();
+				ui.tables = new RollTableDirectory();
+				ui.playlists = new PlaylistDirectory();
+				ui.compendium = new CompendiumDirectory();
+				ui.settings = new Settings();
+				ui.players = new PlayerList();
+				ui.pause = new Pause();
 				ui.menu = new MainMenu();
-		      }
-			  Hooks.on('ready', () => PopoutModule.renderPopout(${sheet}));
-		      window.dispatchEvent(new Event('load'))
-		      </script>`));
+					}
+					Hooks.once('ready', async () => {
+						let forceProceed = false;
+						setTimeout(() => { forceProceed = true; }, 1000);
+						while (${sheet} instanceof ActorSheet && !forceProceed) await (() => { return new Promise(resolve => { setTimeout(() => resolve(), 1); }); })();
+						PopoutModule.renderPopout(${sheet});
+					});
+		      window.dispatchEvent(new Event('load'));
+					</script>`));
 		// Open new window and write the new html document into it
 		// We need to open it to the same url because some images use relative paths
 		let win = window.open(window.location.toString());
-		//console.log(win)
+		// console.log(win, window.location)
 		// This is for electron which doesn't have a Window but a BrowserWindowProxy
 		if (win.document === undefined) {
 			win.eval(`document.write(\`${html[0].outerHTML}\`); document.close();`);
@@ -140,7 +145,7 @@ Hooks.on('ready', () => {
 	for (let type in CONFIG["Actor"].sheetClasses) {
 		sheets = sheets.concat(Object.values(CONFIG["Actor"].sheetClasses[type]));
 	}
-	for (let sheet of sheets.map(s => s.cls.name)) {
+	for (let sheet of sheets.map(s => s.cls.name).reduce((c, s) => { if (!c.includes(s)) c.push(s); return c; }, [])) {
 		Hooks.on('render' + sheet, PopoutModule.onRenderActorSheet);
 	}
 });
