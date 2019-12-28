@@ -18,6 +18,10 @@ class PopoutModule {
 
 	}
 	static onPopoutClicked(event, sheet) {
+		// Lazy way of finding sheet to close
+		const sheetToClose = eval(sheet);
+		if (sheetToClose != null) sheetToClose.close();
+
 		let div = $(event.target).closest("div");
 		let window_title = div.find(".window-title").text().trim();
 
@@ -93,8 +97,8 @@ class PopoutModule {
 					}
 					Hooks.once('ready', async () => {
 						let forceProceed = false;
-						setTimeout(() => { forceProceed = true; }, 1000);
-						while (${sheet} instanceof ActorSheet && !forceProceed) await (() => { return new Promise(resolve => { setTimeout(() => resolve(), 1); }); })();
+						setTimeout(() => { forceProceed = true; }, 2000);
+						while (${sheet} instanceof ActorSheet && !forceProceed) await (() => { return new Promise(resolve => { setTimeout(() => resolve(), 25); }); })();
 						PopoutModule.renderPopout(${sheet});
 					});
 		      window.dispatchEvent(new Event('load'));
@@ -105,9 +109,9 @@ class PopoutModule {
 		// console.log(win, window.location)
 		// This is for electron which doesn't have a Window but a BrowserWindowProxy
 		if (win.document === undefined) {
-			win.eval(`document.write(\`${html[0].outerHTML}\`); document.close();`);
+			win.eval(`document.write(\`<!doctype html>${html[0].outerHTML}\`); document.close();`);
 		} else {
-			win.document.write(html[0].outerHTML);
+			win.document.write(`<!doctype html>${html[0].outerHTML}`);
 			// After doing a write, we need to do a document.close() so it finishes
 			// loading and emits the load event.
 			win.document.close();
