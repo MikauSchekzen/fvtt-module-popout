@@ -102,6 +102,20 @@ class PopoutModule {
 				ui.compendium = new CompendiumDirectory({ tabName: "compendium" });
 				ui.settings = new Settings({ tabName: "settings" });
 					}
+
+                                        KeyboardManager.prototype._onEscape = function(event, up, modifiers) {
+                                          if (up || modifiers.return) return;
+
+                                          // Case 1 - dismiss an open context menu
+                                          if ( ui.context && ui.context.menu.length ) ui.context.close();
+                                          // Case 2 - close open UI windows
+                                          else if ( Object.keys(ui.windows).length ) {
+                                                  Object.values(ui.windows).filter(w => w.id !== ${sheet}.id).forEach(app => app.close());
+                                          }
+                                          // Flag the keydown workflow as handled
+                                          this._handled.add(event.keyCode);
+                                        }
+
 					Hooks.once('ready', async () => {
 						let forceProceed = false;
 						setTimeout(() => { forceProceed = true; }, 3000);
