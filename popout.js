@@ -118,8 +118,8 @@ class PopoutModule {
 
 					Hooks.once('ready', async () => {
 						let forceProceed = false;
-						setTimeout(() => { forceProceed = true; }, 3000);
-						while (${sheet} instanceof ActorSheet && !forceProceed) await (() => { return new Promise(resolve => { setTimeout(() => resolve(), 10); }); })();
+						setTimeout(() => { forceProceed = true; }, 2000);
+						while (${sheet}.template === "templates/sheets/actor-sheet.html" && !forceProceed) await (() => { return new Promise(resolve => { setTimeout(() => resolve(), 10); }); })();
 						PopoutModule.renderPopout(${sheet});
 					});
 		      window.dispatchEvent(new Event('load'));
