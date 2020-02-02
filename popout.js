@@ -1,19 +1,21 @@
-class PopoutModule {
-  static onRenderJournalSheet(obj, html, data) {
+const PopoutModule = {
+  _openWindows: [],
+
+  onRenderJournalSheet(obj, html, data) {
     let element = html.find(".window-header .window-title");
     PopoutModule.addPopout(
       element,
       `game.journal.get("${obj.entity.id}").sheet`
     );
-  }
-  static onRenderActorSheet(obj, html, data) {
+  },
+  onRenderActorSheet(obj, html, data) {
     let element = html.find(".window-header .window-title");
     PopoutModule.addPopout(
       element,
       `game.actors.get("${obj.entity.id}").sheet`
     );
-  }
-  static addPopout(element, sheet) {
+  },
+  addPopout(element, sheet) {
     // Can't find it?
     if (element.length !== 1) {
       return;
@@ -23,8 +25,8 @@ class PopoutModule {
     );
     popout.on("click", event => PopoutModule.onPopoutClicked(event, sheet));
     element.after(popout);
-  }
-  static onPopoutClicked(event, sheet) {
+  },
+  onPopoutClicked(event, sheet) {
     // Lazy way of finding sheet to close
     const sheetToClose = eval(sheet);
     if (sheetToClose != null) sheetToClose.close();
@@ -129,6 +131,10 @@ class PopoutModule {
     // Open new window and write the new html document into it
     // We need to open it to the same url because some images use relative paths
     let win = window.open(window.location.toString());
+    this._openWindows.push(win);
+    win.addEventListener("close", () => {
+      this._openWindows.splice(this._openWindows.indexOf(win), 1);
+    });
     // console.log(win, window.location)
     // This is for electron which doesn't have a Window but a BrowserWindowProxy
     if (win.document === undefined) {
@@ -141,9 +147,9 @@ class PopoutModule {
       // loading and emits the load event.
       win.document.close();
     }
-  }
+  },
 
-  static renderPopout(sheet) {
+  renderPopout(sheet) {
     sheet._original_popout_render = sheet._render;
     sheet.options.minimizable = false;
     sheet.options.resizable = false;
@@ -169,8 +175,17 @@ class PopoutModule {
       sheet.element.find("header .close, header .popout").remove();
     };
     sheet.render(true);
-  }
+  },
+
+  closeAllWindows() {
+    while (this._openWindows.length > 0) {
+      const win = this._openWindows.shift();
+      win.close();
+    }
+  },
 }
+
+window.addEventListener("beforeunload", () => { PopoutModule.closeAllWindows(); });
 
 Hooks.on("ready", () => {
   Hooks.on("renderJournalSheet", PopoutModule.onRenderJournalSheet);
