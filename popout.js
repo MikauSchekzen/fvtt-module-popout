@@ -83,6 +83,7 @@ class PopoutModule {
     // of other things behind the sheet
     body.append(
       $(`<script>
+                      Game.isPopout = true;
 		      Game.prototype.initializeUI = function() {
 				ui.nav = new SceneNavigation();
 				ui.controls = new SceneControls();
@@ -98,7 +99,7 @@ class PopoutModule {
 				ui.items = new ItemDirectory({ tabName: "items" });
 				ui.journal = new JournalDirectory({ tabName: "journal" });
 				ui.tables = new RollTableDirectory({ tabName: "tables" });
-				ui.playlists = new PlaylistDirectory({ tabName: "playlists" });
+                                ui.playlists = new PlaylistDirectory({ tabName: "playlists" });
 				ui.compendium = new CompendiumDirectory({ tabName: "compendium" });
 				ui.settings = new Settings({ tabName: "settings" });
 					}
@@ -175,3 +176,11 @@ Hooks.on("ready", () => {
   Hooks.on("renderJournalSheet", PopoutModule.onRenderJournalSheet);
   Hooks.on("renderActorSheet", PopoutModule.onRenderActorSheet);
 });
+
+// Overwrite Playlist function, so as to not play music in popout menus
+const Playlist_playSound = Playlist.prototype.playSound;
+Playlist.prototype.playSound = function(...args) {
+  if (Game.isPopout) return;
+
+  Playlist_playSound.call(this, ...args);
+};
